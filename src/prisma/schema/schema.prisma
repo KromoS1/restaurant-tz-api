@@ -1,0 +1,117 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// Тип столика
+enum TableType {
+  REGULAR   // обычный
+  VIP       // вип
+  FAMILY    // семейный
+}
+
+// Статус столика в реальном времени
+enum TableStatus {
+  AVAILABLE // доступен
+  OCCUPIED  // занят
+  RESERVED  // забронирован
+  MAINTENANCE // обслуживание
+}
+
+// Статус бронирования
+enum ReservationStatus {
+  PENDING   // ожидает подтверждения
+  CONFIRMED // подтверждена
+  SEATED    // гости размещены
+  COMPLETED // завершена
+  CANCELLED // отменена
+  NO_SHOW   // не явились
+}
+
+// Столики
+model Table {
+  id          String      @id @default(cuid())
+  number      Int         @unique // номер столика
+  minSeats    Int         // минимальное количество мест
+  maxSeats    Int         // максимальное количество мест
+  type        TableType   @default(REGULAR)
+  status      TableStatus @default(AVAILABLE)
+  location    String?     // расположение в зале (например, "у окна", "в центре")
+  description String?     // дополнительное описание
+  
+  // Связи
+  reservations Reservation[]
+  analytics    Analytics[]
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("tables")
+}
+
+// Гости
+model Guest {
+  id          String @id @default(cuid())
+  name        String
+  phone       String @unique
+  email       String?
+  notes       String? // заметки о госте (предпочтения, аллергии и т.д.)
+  
+  // Связи
+  reservations Reservation[]
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("guests")
+}
+
+// Бронирования
+model Reservation {
+  id                String            @id @default(cuid())
+  guestId           String
+  tableId           String
+  guestCount        Int               // количество человек
+  reservationDate   DateTime          // дата и время бронирования
+  duration          Int               @default(120) // продолжительность в минутах (по умолчанию 2 часа)
+  status            ReservationStatus @default(PENDING)
+  specialRequests   String?           // особые пожелания
+  notes             String?           // внутренние заметки персонала
+  
+  // Связи
+  guest Guest @relation(fields: [guestId], references: [id])
+  table Table @relation(fields: [tableId], references: [id])
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("reservations")
+}
+
+// Аналитика (для отслеживания загруженности и трендов)
+model Analytics {
+  id            String   @id @default(cuid())
+  tableId       String?  // если привязано к конкретному столику
+  date          DateTime
+  totalGuests   Int      @default(0) // общее количество гостей за день
+  totalRevenue  Float?   // общая выручка (если нужно)
+  peakHourStart Int?     // час пик начало (0-23)
+  peakHourEnd   Int?     // час пик конец (0-23)
+  avgDuration   Int?     // среднее время обслуживания в минутах
+  
+  // Связи
+  table Table? @relation(fields: [tableId], references: [id])
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([date, tableId]) // уникальность по дате и столику
+  @@map("analytics")
+}
