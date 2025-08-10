@@ -1,10 +1,14 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { ReservationStatus, TableStatus } from '@prisma/client';
+import { AnalyticsService } from 'src/analytics/analytics.service';
 import { PrismaService } from 'src/prisma/prisma.service';
 
 @Injectable()
 export class ReservationStatusesService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly analyticsService: AnalyticsService,
+  ) {}
 
   async confirmedReservation(id: string) {
     try {
@@ -43,8 +47,8 @@ export class ReservationStatusesService {
         throw new BadRequestException('Бронирование уже размещено');
       }
 
-      return await this.prisma.$transaction(async (tx) => {
-        await tx.reservation.update({
+      const result = await this.prisma.$transaction(async (tx) => {
+        const updatedReservation = await tx.reservation.update({
           where: { id },
           data: { status: ReservationStatus.SEATED },
         });
@@ -52,8 +56,15 @@ export class ReservationStatusesService {
           where: { id: reservation.tableId },
           data: { status: TableStatus.OCCUPIED },
         });
-        return reservation;
+        return updatedReservation;
       });
+
+      await this.analyticsService.recordGuestVisit(
+        reservation.tableId,
+        reservation.guestCount,
+      );
+
+      return result;
     } catch (error) {
       throw new BadRequestException(error.message);
     }
@@ -171,8 +182,8 @@ export class ReservationStatusesService {
         );
       }
 
-      return await this.prisma.$transaction(async (tx) => {
-        await tx.reservation.update({
+      const result = await this.prisma.$transaction(async (tx) => {
+        const updatedReservation = await tx.reservation.update({
           where: { id },
           data: { status: ReservationStatus.COMPLETED },
         });
@@ -180,8 +191,16 @@ export class ReservationStatusesService {
           where: { id: reservation.tableId },
           data: { status: TableStatus.MAINTENANCE },
         });
-        return reservation;
+        return updatedReservation;
       });
+
+      await this.analyticsService.recordGuestVisit(
+        reservation.tableId,
+        reservation.guestCount,
+        reservation.duration,
+      );
+
+      return result;
     } catch (error) {
       throw new BadRequestException(error.message);
     }

@@ -1,20 +1,24 @@
 import {
-	BadRequestException,
-	Injectable,
-	NotFoundException,
+  BadRequestException,
+  Injectable,
+  NotFoundException,
 } from '@nestjs/common';
 import { WaitingQueue, WalkInGuest, WalkInStatus } from '@prisma/client';
+import { AnalyticsService } from 'src/analytics/analytics.service';
 import { PrismaService } from 'src/prisma/prisma.service';
 import {
-	WaitingQueueCreateDto,
-	WalkInCreateDto,
-	WalkInSeatDto,
-	WalkInUpdateDto,
+  WaitingQueueCreateDto,
+  WalkInCreateDto,
+  WalkInSeatDto,
+  WalkInUpdateDto,
 } from './walk-in.dto';
 
 @Injectable()
 export class WalkInService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly analyticsService: AnalyticsService,
+  ) {}
 
   async createWalkInGuest(data: WalkInCreateDto): Promise<WalkInGuest> {
     try {
@@ -67,7 +71,7 @@ export class WalkInService {
     seatData: WalkInSeatDto,
   ): Promise<WalkInGuest> {
     try {
-      return await this.prisma.$transaction(async (tx) => {
+      const result = await this.prisma.$transaction(async (tx) => {
         const walkInGuest = await tx.walkInGuest.findUnique({
           where: { id: walkInId },
         });
@@ -127,6 +131,13 @@ export class WalkInService {
 
         return updatedWalkInGuest;
       });
+
+      await this.analyticsService.recordGuestVisit(
+        seatData.tableId,
+        result.guestCount,
+      );
+
+      return result;
     } catch (error) {
       throw new BadRequestException(error.message);
     }
@@ -152,7 +163,7 @@ export class WalkInService {
 
   async completeWalkInGuest(id: string): Promise<WalkInGuest> {
     try {
-      return await this.prisma.$transaction(async (tx) => {
+      const result = await this.prisma.$transaction(async (tx) => {
         const walkInGuest = await tx.walkInGuest.findUnique({
           where: { id },
           include: { table: true },
@@ -185,8 +196,25 @@ export class WalkInService {
           where: { walkInId: id },
         });
 
-        return updatedWalkInGuest;
+        return { updatedWalkInGuest, originalWalkInGuest: walkInGuest };
       });
+
+      if (
+        result.originalWalkInGuest.tableId &&
+        result.originalWalkInGuest.seatedAt
+      ) {
+        const durationMs =
+          new Date().getTime() - result.originalWalkInGuest.seatedAt.getTime();
+        const durationMinutes = Math.round(durationMs / (1000 * 60));
+
+        await this.analyticsService.recordGuestVisit(
+          result.originalWalkInGuest.tableId,
+          result.originalWalkInGuest.guestCount,
+          durationMinutes,
+        );
+      }
+
+      return result.updatedWalkInGuest;
     } catch (error) {
       throw new BadRequestException(error.message);
     }
