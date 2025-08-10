@@ -94,4 +94,45 @@ export class TableService {
       data: { status: status.status },
     });
   }
+
+  async getAvailableTables(
+    guestCount: number,
+    tableType?: string,
+  ): Promise<Table[]> {
+    const whereCondition: any = {
+      status: TableStatus.AVAILABLE,
+      minSeats: { lte: guestCount },
+      maxSeats: { gte: guestCount },
+    };
+
+    if (tableType) {
+      whereCondition.type = tableType;
+    }
+
+    return await this.prisma.table.findMany({
+      where: whereCondition,
+      orderBy: [{ type: 'asc' }, { minSeats: 'desc' }, { maxSeats: 'asc' }],
+    });
+  }
+
+  async getTablesWithUpcomingReservations(): Promise<Table[]> {
+    const now = new Date();
+    const twoHoursFromNow = new Date(now.getTime() + 2 * 60 * 60 * 1000);
+
+    return await this.prisma.table.findMany({
+      include: {
+        reservations: {
+          where: {
+            reservationDate: {
+              gte: now,
+              lte: twoHoursFromNow,
+            },
+            status: {
+              in: ['CONFIRMED', 'PENDING'],
+            },
+          },
+        },
+      },
+    });
+  }
 }

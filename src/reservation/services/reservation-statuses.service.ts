@@ -122,9 +122,8 @@ export class ReservationStatusesService {
         throw new BadRequestException('Бронирование уже отменено');
       }
 
-      // Проверяем, что время бронирования действительно прошло
       const now = new Date();
-      const gracePeriod = 30; // 30 минут grace period
+      const gracePeriod = 30;
       const expectedArrival = new Date(
         reservation.reservationDate.getTime() + gracePeriod * 60000,
       );
@@ -136,7 +135,6 @@ export class ReservationStatusesService {
       }
 
       return await this.prisma.$transaction(async (tx) => {
-        // Обновляем статус бронирования
         await tx.reservation.update({
           where: { id },
           data: {
@@ -145,7 +143,6 @@ export class ReservationStatusesService {
           },
         });
 
-        // Освобождаем столик
         await tx.table.update({
           where: { id: reservation.tableId },
           data: { status: TableStatus.AVAILABLE },

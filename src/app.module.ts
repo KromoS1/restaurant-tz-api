@@ -2,11 +2,13 @@ import { MiddlewareConsumer, Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { APP_INTERCEPTOR, APP_PIPE } from '@nestjs/core';
 import { ZodSerializerInterceptor, ZodValidationPipe } from 'nestjs-zod';
+import { AnalyticsModule } from './analytics/analytics.module';
 import { AppMiddleware } from './app.middleware';
 import { GuestModule } from './guest/guest.module';
 import { PrismaModule } from './prisma/prisma.module';
 import { ReservationModule } from './reservation/reservation.module';
 import { TableModule } from './table/table.module';
+import { WalkInModule } from './walk-in/walk-in.module';
 
 @Module({
   imports: [
@@ -18,6 +20,8 @@ import { TableModule } from './table/table.module';
     TableModule,
     GuestModule,
     ReservationModule,
+    AnalyticsModule,
+    WalkInModule,
   ],
   providers: [
     { provide: APP_INTERCEPTOR, useClass: ZodSerializerInterceptor },

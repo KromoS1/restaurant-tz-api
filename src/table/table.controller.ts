@@ -7,9 +7,11 @@ import {
   Param,
   Patch,
   Post,
+  Query,
 } from '@nestjs/common';
 import { IdDto } from 'src/common/dto/id.dto';
 import {
+  FindAvailableTablesDto,
   TableCreateDto,
   TableUpdateDto,
   TableUpdateStatusDto,
@@ -52,5 +54,20 @@ export class TableController {
   async removeTable(@Param() param: IdDto) {
     await this.tableService.removeTable(param.id);
     return HttpStatus.NO_CONTENT;
+  }
+
+  @Get('available-with-info')
+  async getAvailableTablesWithInfo(@Query() query: FindAvailableTablesDto) {
+    const tables = await this.tableService.getAvailableTables(
+      query.guestCount,
+      query.tableType,
+    );
+
+    return tables.map((table) => ({
+      ...table,
+      suitableFor: `${table.minSeats}-${table.maxSeats} человек`,
+      isOptimal: (guestCount: number) =>
+        guestCount >= table.minSeats && guestCount <= table.maxSeats,
+    }));
   }
 }

@@ -49,6 +49,7 @@ model Table {
   // Связи
   reservations Reservation[]
   analytics    Analytics[]
+  walkInGuests WalkInGuest[]
   
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -114,4 +115,52 @@ model Analytics {
 
   @@unique([date, tableId]) // уникальность по дате и столику
   @@map("analytics")
+}
+
+// Статус walk-in гостя
+enum WalkInStatus {
+  WAITING   // ожидает столик
+  SEATED    // размещен за столиком
+  LEFT      // ушел (не дождался или завершил обед)
+}
+
+// Walk-in гости (посетители без предварительного бронирования)
+model WalkInGuest {
+  id           String       @id @default(uuid()) @db.Uuid
+  guestCount   Int          // количество человек в группе
+  guestName    String?      // имя контактного лица (необязательно)
+  phone        String?      // телефон для связи (необязательно)
+  tableId      String?      @db.Uuid // столик, за которым размещены (если размещены)
+  status       WalkInStatus @default(WAITING)
+  estimatedWait Int?        // ожидаемое время ожидания в минутах
+  seatedAt     DateTime?    // время размещения за столиком
+  leftAt       DateTime?    // время ухода
+  notes        String?      // заметки персонала
+  
+  // Связи
+  table Table? @relation(fields: [tableId], references: [id])
+  waitingQueue WaitingQueue[]
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("walk_in_guests")
+}
+
+// Очередь ожидания для walk-in гостей
+model WaitingQueue {
+  id           String   @id @default(uuid()) @db.Uuid
+  walkInId     String   @db.Uuid
+  guestCount   Int      // количество человек для приоритизации
+  preferredTableType TableType? // предпочтительный тип столика
+  estimatedWait Int?    // оценочное время ожидания в минутах
+  priority     Int      @default(0) // приоритет в очереди (0 = обычный, больше = выше приоритет)
+  
+  // Связи  
+  walkInGuest WalkInGuest @relation(fields: [walkInId], references: [id], onDelete: Cascade)
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("waiting_queue")
 }

@@ -1,5 +1,5 @@
 import { TableStatus, TableType } from '@prisma/client';
-import { Type } from 'class-transformer';
+import { Transform, Type } from 'class-transformer';
 import {
   IsEnum,
   IsIn,
@@ -119,4 +119,17 @@ export class TableUpdateStatusDto {
     message: 'Статус столика должен быть либо доступен, либо на обслуживании',
   })
   status: 'AVAILABLE' | 'MAINTENANCE';
+}
+
+export class FindAvailableTablesDto {
+  @Transform(({ value }) => parseInt(value))
+  @IsInt({ message: 'Количество гостей должно быть числом' })
+  @Min(1, { message: 'Количество гостей должно быть больше 0' })
+  guestCount: number;
+
+  @IsOptional()
+  @IsIn(['REGULAR', 'VIP', 'FAMILY'], {
+    message: 'Тип столика должен быть одним из: REGULAR, VIP, FAMILY',
+  })
+  tableType?: TableType;
 }
