@@ -3,6 +3,7 @@ import { ConfigModule } from '@nestjs/config';
 import { APP_INTERCEPTOR, APP_PIPE } from '@nestjs/core';
 import { ZodSerializerInterceptor, ZodValidationPipe } from 'nestjs-zod';
 import { AppMiddleware } from './app.middleware';
+import { GuestModule } from './guest/guest.module';
 import { PrismaModule } from './prisma/prisma.module';
 import { TableModule } from './table/table.module';
 
@@ -14,6 +15,7 @@ import { TableModule } from './table/table.module';
     }),
     PrismaModule,
     TableModule,
+    GuestModule,
   ],
   providers: [
     { provide: APP_INTERCEPTOR, useClass: ZodSerializerInterceptor },
