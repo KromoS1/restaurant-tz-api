@@ -5,20 +5,36 @@ import {
 } from '@nestjs/common';
 import { Table, TableStatus } from '@prisma/client';
 import { PrismaService } from 'src/prisma/prisma.service';
-import { TableCreateDto, TableUpdateDto } from './table.dto';
+import {
+  TableCreateDto,
+  TableUpdateDto,
+  TableUpdateStatusDto,
+} from './table.dto';
 
 @Injectable()
 export class TableService {
   constructor(private readonly prisma: PrismaService) {}
 
   async getTables(): Promise<Table[]> {
-    return await this.prisma.table.findMany();
+    return await this.prisma.table.findMany({
+      include: {
+        reservations: {
+          select: {
+            id: true,
+            status: true,
+          },
+        },
+      },
+    });
   }
 
   async getTableById(id: string): Promise<Table> {
     const table = await this.prisma.table.findUnique({
       where: {
         id,
+      },
+      include: {
+        reservations: true,
       },
     });
 
@@ -67,5 +83,15 @@ export class TableService {
     } catch (error) {
       throw new BadRequestException('Table not deleted');
     }
+  }
+
+  async maintenanceTable(
+    id: string,
+    status: TableUpdateStatusDto,
+  ): Promise<Table> {
+    return await this.prisma.table.update({
+      where: { id },
+      data: { status: status.status },
+    });
   }
 }

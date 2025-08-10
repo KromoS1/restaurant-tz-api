@@ -5,6 +5,7 @@ import { ZodSerializerInterceptor, ZodValidationPipe } from 'nestjs-zod';
 import { AppMiddleware } from './app.middleware';
 import { GuestModule } from './guest/guest.module';
 import { PrismaModule } from './prisma/prisma.module';
+import { ReservationModule } from './reservation/reservation.module';
 import { TableModule } from './table/table.module';
 
 @Module({
@@ -16,6 +17,7 @@ import { TableModule } from './table/table.module';
     PrismaModule,
     TableModule,
     GuestModule,
+    ReservationModule,
   ],
   providers: [
     { provide: APP_INTERCEPTOR, useClass: ZodSerializerInterceptor },

@@ -37,7 +37,7 @@ enum ReservationStatus {
 
 // Столики
 model Table {
-  id          String      @id @default(cuid())
+  id          String      @id @default(uuid()) @db.Uuid
   number      Int         @unique // номер столика
   minSeats    Int         // минимальное количество мест
   maxSeats    Int         // максимальное количество мест
@@ -58,7 +58,7 @@ model Table {
 
 // Гости
 model Guest {
-  id          String @id @default(cuid())
+  id          String @id @default(uuid()) @db.Uuid
   name        String
   phone       String @unique
   email       String?
@@ -75,9 +75,9 @@ model Guest {
 
 // Бронирования
 model Reservation {
-  id                String            @id @default(cuid())
-  guestId           String
-  tableId           String
+  id                String            @id @default(uuid()) @db.Uuid
+  guestId           String            @db.Uuid
+  tableId           String            @db.Uuid
   guestCount        Int               // количество человек
   reservationDate   DateTime          // дата и время бронирования
   duration          Int               @default(120) // продолжительность в минутах (по умолчанию 2 часа)
@@ -97,8 +97,8 @@ model Reservation {
 
 // Аналитика (для отслеживания загруженности и трендов)
 model Analytics {
-  id            String   @id @default(cuid())
-  tableId       String?  // если привязано к конкретному столику
+  id            String   @id @default(uuid()) @db.Uuid
+  tableId       String?  @db.Uuid // если привязано к конкретному столику
   date          DateTime
   totalGuests   Int      @default(0) // общее количество гостей за день
   totalRevenue  Float?   // общая выручка (если нужно)

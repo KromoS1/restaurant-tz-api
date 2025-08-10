@@ -2,6 +2,7 @@ import { TableStatus, TableType } from '@prisma/client';
 import { Type } from 'class-transformer';
 import {
   IsEnum,
+  IsIn,
   IsInt,
   IsOptional,
   IsPositive,
@@ -111,4 +112,11 @@ export class TableIdDto {
   @IsString({ message: 'ID столика должно быть строкой' })
   @IsUUID(4, { message: 'ID столика должно быть валидным UUID' })
   id: string;
+}
+
+export class TableUpdateStatusDto {
+  @IsIn([TableStatus.AVAILABLE, TableStatus.MAINTENANCE], {
+    message: 'Статус столика должен быть либо доступен, либо на обслуживании',
+  })
+  status: 'AVAILABLE' | 'MAINTENANCE';
 }

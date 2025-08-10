@@ -9,7 +9,11 @@ import {
   Post,
 } from '@nestjs/common';
 import { IdDto } from 'src/common/dto/id.dto';
-import { TableCreateDto, TableUpdateDto } from './table.dto';
+import {
+  TableCreateDto,
+  TableUpdateDto,
+  TableUpdateStatusDto,
+} from './table.dto';
 import { TableService } from './table.service';
 
 @Controller('table')
@@ -34,6 +38,14 @@ export class TableController {
   @Patch(':id')
   async updateTable(@Param() param: IdDto, @Body() table: TableUpdateDto) {
     return await this.tableService.update(param.id, table);
+  }
+
+  @Patch(':id/maintenance')
+  async maintenanceTable(
+    @Param() param: IdDto,
+    @Body() table: TableUpdateStatusDto,
+  ) {
+    return await this.tableService.maintenanceTable(param.id, table);
   }
 
   @Delete(':id')
