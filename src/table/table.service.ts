@@ -18,12 +18,7 @@ export class TableService {
   async getTables(): Promise<Table[]> {
     return await this.prisma.table.findMany({
       include: {
-        reservations: {
-          select: {
-            id: true,
-            status: true,
-          },
-        },
+        reservations: true
       },
     });
   }
