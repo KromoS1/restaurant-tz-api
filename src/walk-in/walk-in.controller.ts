@@ -1,20 +1,20 @@
 import {
-	Body,
-	Controller,
-	Delete,
-	Get,
-	HttpCode,
-	HttpStatus,
-	Param,
-	Patch,
-	Post,
+  Body,
+  Controller,
+  Delete,
+  Get,
+  HttpCode,
+  HttpStatus,
+  Param,
+  Patch,
+  Post,
 } from '@nestjs/common';
 import {
-	WaitingQueueCreateDto,
-	WalkInCreateDto,
-	WalkInIdDto,
-	WalkInSeatDto,
-	WalkInUpdateDto,
+  WaitingQueueCreateDto,
+  WalkInCreateDto,
+  WalkInIdDto,
+  WalkInSeatDto,
+  WalkInUpdateDto,
 } from './walk-in.dto';
 import { WalkInService } from './walk-in.service';
 

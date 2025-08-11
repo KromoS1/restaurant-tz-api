@@ -14,6 +14,16 @@ async function bootstrap() {
     },
   );
 
+  const configService = app.get(ConfigService);
+
+  app.enableCors({
+    origin: ['http://localhost:3000', 'http://127.0.0.1:3000'],
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'Accept'],
+    credentials: true,
+    exposedHeaders: ['set-cookie'],
+  });
+
   app.useGlobalPipes(
     new ValidationPipe({
       transform: true,
@@ -21,8 +31,6 @@ async function bootstrap() {
       forbidNonWhitelisted: true,
     }),
   );
-
-  const configService = app.get(ConfigService);
   const PORT = configService.getOrThrow<number>('PORT');
 
   await app.listen(PORT, () => {
