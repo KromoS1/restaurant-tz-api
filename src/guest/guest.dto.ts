@@ -4,6 +4,7 @@ import {
   IsPhoneNumber,
   IsString,
   Length,
+  ValidateIf,
 } from 'class-validator';
 
 export class GuestCreateDto {
@@ -15,7 +16,7 @@ export class GuestCreateDto {
   phone: string;
 
   @IsOptional()
-  @IsString()
+  @ValidateIf((object, value) => value !== null && value !== '')
   @IsEmail({}, { message: 'Некорректный email' })
   email?: string;
 
@@ -36,7 +37,7 @@ export class GuestUpdateDto {
   phone: string;
 
   @IsOptional()
-  @IsString()
+  @ValidateIf((object, value) => value !== null && value !== '')
   @IsEmail({}, { message: 'Некорректный email' })
   email?: string;
 
