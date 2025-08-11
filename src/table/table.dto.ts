@@ -1,16 +1,16 @@
 import { TableStatus, TableType } from '@prisma/client';
 import { Transform, Type } from 'class-transformer';
 import {
-  IsEnum,
-  IsIn,
-  IsInt,
-  IsOptional,
-  IsPositive,
-  IsString,
-  IsUUID,
-  Length,
-  Max,
-  Min,
+    IsEnum,
+    IsIn,
+    IsInt,
+    IsOptional,
+    IsPositive,
+    IsString,
+    IsUUID,
+    Length,
+    Max,
+    Min,
 } from 'class-validator';
 
 export class TableCreateDto {
@@ -52,6 +52,33 @@ export class TableCreateDto {
   @IsString({ message: 'Описание должно быть строкой' })
   @Length(0, 500, { message: 'Описание должно быть от 0 до 500 символов' })
   description?: string;
+
+  @IsOptional()
+  @Type(() => Number)
+  positionX?: number;
+
+  @IsOptional()
+  @Type(() => Number)
+  positionY?: number;
+
+  @IsOptional()
+  @IsString({ message: 'Форма столика должна быть строкой' })
+  @IsIn(['circle', 'rect', 'ellipse'], {
+    message: 'Форма столика должна быть circle, rect или ellipse',
+  })
+  shape?: string;
+
+  @IsOptional()
+  @Type(() => Number)
+  width?: number;
+
+  @IsOptional()
+  @Type(() => Number)
+  height?: number;
+
+  @IsOptional()
+  @Type(() => Number)
+  radius?: number;
 }
 
 export class TableUpdateDto {
@@ -97,6 +124,33 @@ export class TableUpdateDto {
   @IsString({ message: 'Описание должно быть строкой' })
   @Length(0, 500, { message: 'Описание должно быть от 0 до 500 символов' })
   description?: string;
+
+  @IsOptional()
+  @Type(() => Number)
+  positionX?: number;
+
+  @IsOptional()
+  @Type(() => Number)
+  positionY?: number;
+
+  @IsOptional()
+  @IsString({ message: 'Форма столика должна быть строкой' })
+  @IsIn(['circle', 'rect', 'ellipse'], {
+    message: 'Форма столика должна быть circle, rect или ellipse',
+  })
+  shape?: string;
+
+  @IsOptional()
+  @Type(() => Number)
+  width?: number;
+
+  @IsOptional()
+  @Type(() => Number)
+  height?: number;
+
+  @IsOptional()
+  @Type(() => Number)
+  radius?: number;
 }
 
 export class TableChangeStatusDto {

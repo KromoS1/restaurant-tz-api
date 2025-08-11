@@ -187,7 +187,6 @@ export class AnalyticsService {
         const durationMs = guest.leftAt.getTime() - guest.seatedAt.getTime();
         const durationMinutes = Math.round(durationMs / (1000 * 60));
         if (durationMinutes > 0 && durationMinutes < 300) {
-          // Исключаем аномальные значения
           durations.push(durationMinutes);
         }
       }

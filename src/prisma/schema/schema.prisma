@@ -1,6 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -10,43 +7,45 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-// Тип столика
 enum TableType {
-  REGULAR   // обычный
-  VIP       // вип
-  FAMILY    // семейный
+  REGULAR  
+  VIP       
+  FAMILY    
 }
 
-// Статус столика в реальном времени
 enum TableStatus {
-  AVAILABLE // доступен
-  OCCUPIED  // занят
-  RESERVED  // забронирован
-  MAINTENANCE // обслуживание
+  AVAILABLE 
+  OCCUPIED  
+  RESERVED  
+  MAINTENANCE 
 }
 
-// Статус бронирования
 enum ReservationStatus {
-  PENDING   // ожидает подтверждения
-  CONFIRMED // подтверждена
-  SEATED    // гости размещены
-  COMPLETED // завершена
-  CANCELLED // отменена
-  NO_SHOW   // не явились
+  PENDING  
+  CONFIRMED 
+  SEATED    
+  COMPLETED 
+  CANCELLED 
+  NO_SHOW   
 }
 
-// Столики
 model Table {
   id          String      @id @default(uuid()) @db.Uuid
-  number      Int         @unique // номер столика
-  minSeats    Int         // минимальное количество мест
-  maxSeats    Int         // максимальное количество мест
+  number      Int         @unique
+  minSeats    Int         
+  maxSeats    Int         
   type        TableType   @default(REGULAR)
   status      TableStatus @default(AVAILABLE)
-  location    String?     // расположение в зале (например, "у окна", "в центре")
-  description String?     // дополнительное описание
+  location    String?     
+  description String?     
   
-  // Связи
+  positionX   Float?      
+  positionY   Float?      
+  shape       String?     
+  width       Float?      
+  height      Float?      
+  radius      Float?      
+  
   reservations Reservation[]
   analytics    Analytics[]
   walkInGuests WalkInGuest[]
@@ -57,15 +56,13 @@ model Table {
   @@map("tables")
 }
 
-// Гости
 model Guest {
   id          String @id @default(uuid()) @db.Uuid
   name        String
   phone       String @unique
   email       String?
-  notes       String? // заметки о госте (предпочтения, аллергии и т.д.)
+  notes       String? 
   
-  // Связи
   reservations Reservation[]
   
   createdAt DateTime @default(now())
@@ -74,19 +71,17 @@ model Guest {
   @@map("guests")
 }
 
-// Бронирования
 model Reservation {
   id                String            @id @default(uuid()) @db.Uuid
   guestId           String            @db.Uuid
   tableId           String            @db.Uuid
-  guestCount        Int               // количество человек
-  reservationDate   DateTime          // дата и время бронирования
-  duration          Int               @default(120) // продолжительность в минутах (по умолчанию 2 часа)
+  guestCount        Int               
+  reservationDate   DateTime          
+  duration          Int               @default(120) 
   status            ReservationStatus @default(PENDING)
-  specialRequests   String?           // особые пожелания
-  notes             String?           // внутренние заметки персонала
+  specialRequests   String?           
+  notes             String?           
   
-  // Связи
   guest Guest @relation(fields: [guestId], references: [id])
   table Table @relation(fields: [tableId], references: [id])
   
@@ -96,48 +91,43 @@ model Reservation {
   @@map("reservations")
 }
 
-// Аналитика (для отслеживания загруженности и трендов)
 model Analytics {
   id            String   @id @default(uuid()) @db.Uuid
-  tableId       String?  @db.Uuid // если привязано к конкретному столику
+  tableId       String?  @db.Uuid 
   date          DateTime
-  totalGuests   Int      @default(0) // общее количество гостей за день
-  totalRevenue  Float?   // общая выручка (если нужно)
-  peakHourStart Int?     // час пик начало (0-23)
-  peakHourEnd   Int?     // час пик конец (0-23)
-  avgDuration   Int?     // среднее время обслуживания в минутах
+  totalGuests   Int      @default(0) 
+  totalRevenue  Float?   
+  peakHourStart Int?     
+  peakHourEnd   Int?     
+  avgDuration   Int?     
   
-  // Связи
   table Table? @relation(fields: [tableId], references: [id])
   
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  @@unique([date, tableId]) // уникальность по дате и столику
+  @@unique([date, tableId]) 
   @@map("analytics")
 }
 
-// Статус walk-in гостя
 enum WalkInStatus {
-  WAITING   // ожидает столик
-  SEATED    // размещен за столиком
-  LEFT      // ушел (не дождался или завершил обед)
+  WAITING  
+  SEATED   
+  LEFT     
 }
 
-// Walk-in гости (посетители без предварительного бронирования)
 model WalkInGuest {
   id           String       @id @default(uuid()) @db.Uuid
-  guestCount   Int          // количество человек в группе
-  guestName    String?      // имя контактного лица (необязательно)
-  phone        String?      // телефон для связи (необязательно)
-  tableId      String?      @db.Uuid // столик, за которым размещены (если размещены)
+  guestCount   Int         
+  guestName    String?     
+  phone        String?     
+  tableId      String?      @db.Uuid
   status       WalkInStatus @default(WAITING)
-  estimatedWait Int?        // ожидаемое время ожидания в минутах
-  seatedAt     DateTime?    // время размещения за столиком
-  leftAt       DateTime?    // время ухода
-  notes        String?      // заметки персонала
+  estimatedWait Int?       
+  seatedAt     DateTime?   
+  leftAt       DateTime?   
+  notes        String?     
   
-  // Связи
   table Table? @relation(fields: [tableId], references: [id])
   waitingQueue WaitingQueue[]
   
@@ -147,16 +137,14 @@ model WalkInGuest {
   @@map("walk_in_guests")
 }
 
-// Очередь ожидания для walk-in гостей
 model WaitingQueue {
   id           String   @id @default(uuid()) @db.Uuid
   walkInId     String   @db.Uuid
-  guestCount   Int      // количество человек для приоритизации
-  preferredTableType TableType? // предпочтительный тип столика
-  estimatedWait Int?    // оценочное время ожидания в минутах
-  priority     Int      @default(0) // приоритет в очереди (0 = обычный, больше = выше приоритет)
+  guestCount   Int     
+  preferredTableType TableType?
+  estimatedWait Int?   
+  priority     Int      @default(0)
   
-  // Связи  
   walkInGuest WalkInGuest @relation(fields: [walkInId], references: [id], onDelete: Cascade)
   
   createdAt DateTime @default(now())
